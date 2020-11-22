@@ -32,7 +32,7 @@ def train(args):
     test_set = IkeaSet(TEST_MAT_PATH)
     test_loader = DataLoader(test_set, num_workers=4, pin_memory=True)
 
-    model = SimpleModel(n_class=4).to(device)
+    model = SimpleModel(n_class=len(train_set.classes)).to(device)
     model = load_model(model, 'model', args.save)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -63,6 +63,8 @@ def train(args):
             pred = model(batch[0])
 
             loss = loss_fn(pred, label)
+            print(pred)
+            print(torch.argmax(pred, dim=1), label)
             acc = get_accuracy(label, pred)
             if i % 20 == 0:
                 print('epoch{}, {}/{}, lost={:.4f} acc={:.4f}'.format(epoch, i, len(train_loader), loss.item(), acc))

@@ -7,8 +7,10 @@ class Sampler():
         Sampler to obtain k-way (k classes) n-shot (n per class) samples.
         label is the list of labels for all training samples.
         __iter__ returns indice of the sample to train on.
+
+        n_per_class: n_query + n_support
     """
-    def __init__(self, label, n_batch, n_class, n_per_class, limit_class=False):
+    def __init__(self, classes, label, n_batch, n_class, n_per_class):
         self.n_batch = n_batch
         self.n_class = n_class
         self.n_per_class = n_per_class
@@ -18,7 +20,7 @@ class Sampler():
 
         #print(label, class_name)
         # experiemnt -> only 4 classes.
-        for i in range(n_class):
+        for i in range(classes):
             index = np.argwhere(label==i).reshape(-1)
             self.index_map.append(torch.from_numpy(index))
 
@@ -29,7 +31,7 @@ class Sampler():
         for b in range(self.n_batch):
             batch = []
             classes = []
-            classes = torch.randperm(len(self.index_map)) #[:self.n_class]
+            classes = torch.randperm(len(self.index_map))[:self.n_class]
             #print("classes: ", len(classes))
             assert len(classes) == self.n_class
             for c in classes:
@@ -37,14 +39,15 @@ class Sampler():
                 pos_list = torch.randperm(len(ind_list))[:self.n_per_class]
                 batch.append(ind_list[pos_list])
             #print(batch)
+            
+            # batch label shape: [1, 2, 3, 4,|<= support  query =>|1, 2, 3, 4, 1, 2, 3, 4....]
             batch = torch.stack(batch).t().reshape(-1)
             yield batch
 
-'''
+
 def test_sampler():
     dataset = IkeaSet(TRAIN_MAT_PATH)
-    print(len(dataset.labelSet))
-    test_sampler = Sampler(dataset.label, dataset.final_classes, 10, 4, 6, limit_class=True)
+    test_sampler = Sampler(len(dataset.classes), dataset.label, 10, 5, 6)
     test_loader = DataLoader(dataset, batch_sampler=test_sampler, num_workers=4, pin_memory=True)
     for i, batch in enumerate(test_loader, 1):
         print(np.array(batch[0]).shape)
@@ -52,4 +55,3 @@ def test_sampler():
 
 if __name__ == "__main__":
     test_sampler()
-'''

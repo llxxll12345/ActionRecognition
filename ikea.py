@@ -46,30 +46,20 @@ class IkeaSet(Dataset):
         self.labelSet = set()
         self.label = []
         self.data = []
-        self.final_classes = set()
+    
 
         classes, class_cnt, clips, clip_label = load_data(mat_path)
-        #print(class_cnt)
-        
-        for i in range (len(clips)):
-            label = clip_label[i]
-            if (class_cnt[label] >= 6):
-                self.data.append(clips[i])
-                self.label.append(clip_label[i])
-                self.final_classes.add(clip_label[i])
+        self.label = clip_label
+        self.data = clips
+        self.classes = classes
 
         class_map = {}
         cnt = 0
-        for c in self.final_classes:
+        for c in self.classes:
             class_map[c] = cnt
             cnt += 1
-
-        #print(class_map)
-        self.label = [class_map[l] for l in self.label] 
-        #print(self.labels)
-        print(classes)
-        print(self.final_classes)
-        #print(self.final_classes)
+    
+        self.class_cnt = class_cnt
 
     def __len__(self):
         return len(self.data)
@@ -78,7 +68,7 @@ class IkeaSet(Dataset):
         clip, label = self.data[i], self.label[i]
         return clip, label
 
-'''
+
 def test():
     dataset = IkeaSet(TRAIN_MAT_PATH)
     train_loader = DataLoader(dataset=dataset, num_workers=8, pin_memory=True)
@@ -87,4 +77,4 @@ def test():
 
 if __name__ == "__main__":
     test()
-'''
+
